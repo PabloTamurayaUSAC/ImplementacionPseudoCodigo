@@ -51,7 +51,7 @@ public class Menu1 : Window
 
 public class Menu2 : Window
 {
-    public int tipo, cantidad;
+    public int tipo, cantidad, indexT;
     public int[] datos, atras, delante, index;
     public Menu2(int tipo) : base("Editor de Lista")
     {
@@ -61,6 +61,12 @@ public class Menu2 : Window
         delante = new int[10];
         index = new int[10];
         cantidad = 0;
+        for (int i=0; i<10; i++){
+            datos[i] = -1;
+            atras[i] = -1;
+            delante[i] = -1;
+            index[i]= -1;
+        }
 
         VBox conV = new VBox();
         switch (tipo){
@@ -175,7 +181,8 @@ public class Insertar : Window //completar
                             }
                             break;
                         case 3:
-                            padre.index[padre.cantidad]=padre.cantidad;
+                            padre.index[padre.cantidad]=padre.indexT;
+                            padre.indexT++;
                             break;            
                     }
                     padre.cantidad++;
@@ -230,51 +237,36 @@ public class Eliminar : Window //completar
                     padre.datos[numero] = 0;
                     for (int i=numero; i < padre.cantidad-1; i++){
                         padre.datos[i]=padre.datos[i+1];
-                        padre.datos[i+1]=0;
+                        padre.datos[i+1]=-1;
                     }
                     switch (padre.tipo){
                         case 0:
                             break;
                         case 1:
-                            if(padre.cantidad > 0){
-                                if (numero != 0){
-                                    padre.delante[numero-1]=padre.delante[numero];
-                                    padre.delante[numero]=0;
-                                    for (int i=numero; i < padre.cantidad; i++){
-                                        padre.delante[i-1]=padre.delante[i];
-                                        padre.atras[i]=0;
-                                    }
-                                }
+                            if (numero>0) {
+                                padre.delante[numero-1] = padre.delante[numero];
+                            }
+                            for(int i=numero; i<padre.cantidad; i++){
+                                padre.delante[i] = padre.delante[i+1];
+                                padre.delante[i+1]=-1;
                             }
                             break;
                         case 2:
-                            if(padre.cantidad > 0){
-                                if (numero != 9){
-                                    padre.atras[numero]=padre.atras[numero+1];
-                                    padre.atras[numero+1]=0;
-                                    for (int i=numero; i < padre.cantidad-1; i++){
-                                        padre.atras[i]=padre.atras[i+1];
-                                        padre.atras[i+1]=0;
-                                    }
+                            if (numero>0) {
+                                padre.delante[numero-1] = padre.delante[numero];
+                            }
+                            for(int i=numero; i<padre.cantidad-1; i++){
+                                padre.delante[i] = padre.delante[i+1];
+                                padre.delante[i+1]=-1;
+                                if (i != 0){
+                                    padre.atras[i] = padre.datos[i-1];
                                 }
-                                if (numero != 0){
-                                    padre.delante[numero-1]=padre.delante[numero];
-                                    padre.delante[numero]=0;
-                                    for (int i=numero; i < padre.cantidad; i++){
-                                        padre.delante[i-1]=padre.delante[i];
-                                        padre.atras[i]=0;
-                                    }
-                                }
-                                
                             }
                             break;
                         case 3:
-                            for (int i=0; i < padre.cantidad; i++){
-                                if (padre.datos[i] != 0){
-                                    padre.index[i]=i;
-                                }else{
-                                    padre.index[i]=0;
-                                }
+                            for (int i=numero; i < padre.cantidad-1; i++){
+                                padre.index[i]=padre.index[i+1];
+                                padre.index[i+1]=-1;
                             }
                             break;            
                     }
@@ -309,23 +301,21 @@ public class Mostrar : Window //completar
             case 0:
                 tipo = "Prueba de Lista Contigua";
                 for(int i=0; i < padre.cantidad; i++){
-                    listado += $"[{padre.datos[i]}]";
+                    listado += $"{padre.datos[i]}";
                     if(!(i==padre.cantidad-1)){
-                        listado += ", \n";
+                        listado += ", ";
                     }    
                 }
                 break;
             case 1:
                 tipo = "Prueba de Lista Ligada";
                 for(int i=0; i < padre.cantidad; i++){
-                    listado += $"[{padre.datos[i]}]";
-                    if(i<9 && padre.delante[i] != 0){
-                        listado += $"->[{padre.delante[i]}]";
-                    }else{
-                        listado += $"->[]";
-                    }
+                    listado += $"{padre.datos[i]}";
+                    if(i<9 && padre.delante[i] != -1){
+                        listado += $" -> {padre.delante[i]}";
+                    } 
                     if(!(i==padre.cantidad-1)){
-                        listado += ", \n";
+                        listado += ",\n";
                     }        
                 }
                 break;
@@ -333,26 +323,29 @@ public class Mostrar : Window //completar
                 tipo = "Prueba de Lista Doble Ligada";
                 for(int i=0; i < padre.cantidad; i++){
                     if (i==0){
-                        listado += $"[]<-[{padre.datos[i]}]";  
+                        if(padre.delante[i]!=-1){
+                            listado += $"\t{padre.datos[i]}"; 
+                        }else{
+                            listado += $"{padre.datos[i]}"; 
+                        }
+                         
                     }else{
-                        listado += $"[{padre.atras[i]}]<-[{padre.datos[i]}]";  
+                        listado += $"{padre.atras[i]} <- {padre.datos[i]}";  
                     }
-                    if(i<9 && padre.delante[i] != 0){
-                        listado += $"->[{padre.delante[i]}]";
-                    }else{
-                        listado += $"->[]";
+                    if(i<9 && padre.delante[i] != -1){
+                        listado += $" -> {padre.delante[i]}";
                     }
                     if(!(i==padre.cantidad-1)){
-                        listado += ", \n";
+                        listado += ",\n";
                     }              
                 }
                 break;
             case 3:
                 tipo = "Prueba de Lista Index";
                 for(int i=0; i < padre.cantidad; i++){
-                    listado += $"[{padre.index[i]}] : [{padre.datos[i]}]";
+                    listado += $"Index = {padre.index[i]} : Valor = {padre.datos[i]}";
                     if(!(i==padre.cantidad-1)){
-                        listado += ", \n";
+                        listado += ",\n";
                     }              
                 }
                 break;            
